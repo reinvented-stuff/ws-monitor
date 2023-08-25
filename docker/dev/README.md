@@ -8,6 +8,11 @@ docker-compose up -d
 
 ## General information
 
+Default credentials:
+
+Admin: Visitor : visitor
+Guest: guest : guest
+
 ### RabbitMQ
 
 AMQP — localhost:5672
