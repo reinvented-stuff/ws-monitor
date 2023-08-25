@@ -16,18 +16,18 @@ docker-compose up -d
 
 ### RabbitMQ
 
-AMQP — localhost:5672
-Management — https://localhost:15672
+* AMQP — localhost:5672
+* Management — https://localhost:15672
 
 ### MQTT
 
-MQTT — localhost:1883 
-MQTT Web — localhost:15675
+* MQTT — localhost:1883 
+* MQTT Web — localhost:15675
 
 ### STOMP
 
-STOMP — localhost:61613
-STOMP Web — localhost:15674
+* STOMP — localhost:61613
+* STOMP Web — localhost:15674
 
 
 ### Metrics
