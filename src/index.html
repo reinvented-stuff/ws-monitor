@@ -108,10 +108,10 @@
 
     var current_type = null;
 
-    rmq_receive = "/exchange/receive_v2"
+    rmq_receive = "/exchange/dev_loopback"
     // rmq_receive = "/exchange/send"
-    rmq_send = "/exchange/send_v2/routingtag1"
-    url = "wss://localhost/ws";
+    rmq_send = "/exchange/dev_loopback/routingtag1"
+    url = "ws://localhost:15674/ws";
     client = Stomp.client(url);
 
 
