@@ -112,8 +112,10 @@ def loopback():
             'body': json.dumps(body),
             'routing_key': "dev_rk_static",
         }
-
+        
+        logging.info(f"Sending message: {payload}")
         publish_queue.put(payload)
+
         time.sleep(1)
 
     # consumer_2.start()
