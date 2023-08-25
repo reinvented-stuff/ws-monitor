@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.0/jquery.min.js"></script>
+  <script src="stomp.js"></script>
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/bootstrap.min.responsive.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/styles/default.min.css">
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/highlight.min.js"></script>
+  <link class="codestyle" rel="stylesheet" href="css/railscasts.css">
+
+<style type="text/css"> 
+  .hidden {
+    display: none;
+  }
+  .bold {
+    font-weight: bold;
+  }
+</style>
+
+</head>
+<body>
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#">STOMP Console</a>
+          <span class="pull-right">
+            <button id="btn_wipe_events" class="btn" type="">Wipe events</button>
+            <span style="width: 20px; display: inline-block;">&nbsp</span>
+            <button id="btn_wipe_debug" class="btn" type="">Wipe debug</button>
+            <span style="width: 20px; display: inline-block;">&nbsp</span>
+            <button id="btn_disconnect" class="btn" type="">Disconnect</button>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 25px;"></div>
+
+    <div class="container-fluid">
+      <div class="row-fluid">
+
+        <div class="span9">
+          <div id="connected" style="">
+            <div class="page-header">
+              <h2>Outbound message</h2>
+            </div>
+            <form class="well form-search" id='send_form'>
+              <textarea 
+                id='send_form_input'
+                placeholder="Type your message here"
+                class="span6"
+                cols="140"
+                rows="6"
+              ></textarea>
+              <button class="btn" type="submit">Send</button>
+            </form>
+            <div id="messages">
+            </div>
+          </div>
+
+          <div id="outbound_history" class="hidden">
+          </div>
+
+        </div>
+
+        <div class="span3">
+          <div class="page-header">
+            <h2>Event types</h2>
+          </div>
+          <ul id="event_types">
+          </ul>
+
+          <div class="page-header">
+            <h2>Debug Log</h2>
+          </div>
+          <pre id="debug"></pre>
+        </div>
+
+      </div>
+    </div>
+
+
+    <script type="text/javascript">
+      function guid() {
+        var S4 = function() {
+         return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+       };
+       return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+     }
+    </script>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+    var client, url, rmq_receive, rmq_send;
+    var event_types = [];
+    var event_types_hidden = [];
+    
+    var outbound_history = {};
+    var event_div_count = 0;
+
+    var current_type = null;
+
+    rmq_receive = "/exchange/receive_v2"
+    // rmq_receive = "/exchange/send"
+    rmq_send = "/exchange/send_v2/routingtag1"
+    url = "wss://localhost/ws";
+    client = Stomp.client(url);
+
+
+    client.debug = function(str) {
+      // console.log("Event accepted");
+      $("#debug").append(str + "\n");
+    };
+
+    var connectCallback = function(frame) {
+      client.debug("connected to Stomp");
+      client.subscribe(rmq_receive, function(message) {
+
+        var extra, history_element;
+        var dt = new Date();
+        var payload_json = JSON.parse(message.body);
+        event_div_count += 1;
+
+        var type = payload_json["@type"];
+
+
+        if (Object.hasOwn(payload_json, "@extra") ) {
+
+          extra = payload_json["@extra"];
+          history_element = `<pre class="${extra}">` +
+            `<code class="language-json">` +
+            `${JSON.stringify(outbound_history[extra])}` +
+            `</code>` +
+            `</pre>`;
+
+        } else {
+
+          extra = "N/A";
+          history_element = "";
+
+        }
+
+
+        if (event_types.indexOf(type) === -1) {
+        
+          $("#event_types").prepend(`<li><a href="#" class="manage_type" data-filter-active="0" data-manage-type="${type}">${type}</a></li>`);
+          event_types.push(type);
+        }
+
+        var hidden_class = "";
+
+        if ( current_type != null && current_type != type ) {
+          hidden_class = "hidden";
+        }
+
+        $("#messages").prepend(`<div class="event ${type} ${hidden_class}">` +
+          dt.toLocaleDateString() + 
+          " " +
+          dt.toLocaleTimeString() +
+          ":" +
+          `<span class="pull-right">${extra}</span>`+
+          history_element +
+          "<pre><code class=\"language-json\">" +
+          JSON.stringify(payload_json, undefined, 2) +
+          "</code></pre></div>\n"
+        );
+
+        hljs.highlightAll();
+
+      });
+    };
+
+    var errorCallback = function(err) {
+      console.log(`STOMP Client Error: ${err}`);
+      client.connect("guest", "guest", connectCallback, errorCallback);
+    }
+
+    var closeEventCallback = function(e) {
+      console.log(`STOMP Client Close: ${e}`);
+    }
+
+    client.connect("guest", "guest", connectCallback, errorCallback);
+
+    $(document).on("click", '.manage_type', function(){
+      current_type = $(this).attr("data-manage-type");
+      var current_filter_state = $(this).attr("data-filter-active");
+
+      if (current_filter_state == 1) {
+
+        $(this).removeClass("bold");
+        $(`div.event`).show();
+        $(`div.event`).removeClass("hidden");
+        $(this).attr("data-filter-active", 0);
+      
+      } else {    
+
+        $(`a:not(.${current_type}).manage_type`).removeClass("bold");
+        $(this).addClass("bold");
+        $(this).attr("data-filter-active", 1);
+
+        $(`div:not(.${current_type}).event`).hide();
+        $(`div.${current_type}.event`).show();
+        $(`div.${current_type}.event`).removeClass("hidden");
+
+      }
+
+    });
+
+
+    $(document).on("click", '#btn_wipe_events', function(){
+      $(`div.event`).remove();
+      outbound_history = {};
+    });
+
+
+    $(document).on("click", '#btn_wipe_debug', function(){
+      $("pre#debug").text("");
+    });
+
+
+    $(document).on("click", '#btn_disconnect', function(){
+      client.disconnect();
+      this.innerHTML = "Connect";
+      this.id = "btn_connect";
+    });
+
+
+    $(document).on("click", '#btn_connect', function(){
+
+      this.innerHTML = "Disconnect";
+      this.id = "btn_disconnect";
+
+      client.connect("guest", "guest", connectCallback, errorCallback);
+
+    });
+
+
+    $('#send_form').submit(function() {
+      var text = $('#send_form_input').val();
+      if (text) {
+
+        var text_parts = text.split("\n");
+
+        for (idx = 0; idx < text_parts.length; idx++) {
+
+          if ( text_parts[idx] ) {
+
+            var text_parts_json = JSON.parse(text_parts[idx]);
+            if (! Object.hasOwn(text_parts_json, "@extra") ) {
+              text_parts_json['@extra'] = guid();
+              outbound_history[text_parts_json['@extra']] = text_parts_json;
+
+            }
+
+            console.log(`Sending message: '${JSON.stringify(text_parts_json)}'`);
+            client.send(rmq_send, {}, JSON.stringify(text_parts_json));
+          }
+
+        }
+
+        // client.send(rmq_send, {}, text);
+        $('#send_form_input').val("");
+      }
+      return false;
+    });
+
+  });
+
+</script>
+
+</body>
+</html>
