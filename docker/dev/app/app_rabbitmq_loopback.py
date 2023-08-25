@@ -12,7 +12,7 @@ import time
 from py_rmq_exchange import ExchangeThread
 
 
-rmq_server_address = "rabbitmq310"
+rmq_server_address = "rabbitmq312"
 rmq_exchange = "dev_loopback"
 
 publish_queue = queue.Queue()
