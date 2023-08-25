@@ -15,7 +15,8 @@ STOMP documentation: http://stomp.github.io/
 
 ## Development environment
 
-TBD
+Refer to the following section:
+https://github.com/reinvented-stuff/ws-monitor/tree/master/docker/dev
 
 ## Support
 
