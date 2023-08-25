@@ -1,0 +1,44 @@
+---
+version: '3'
+
+services:
+  rabbitmq310:
+    image: rabbitmq:3.12-management-alpine
+    container_name: 'rabbitmq312'
+    networks:
+      - rabbitmq310-dev
+    ports:
+      - 1883:1883   # mqtt
+      - 15675:15675 # web-mqtt
+      
+      - 61613:61613 # stomp
+      - 15674:15674 # web-stomp
+      
+      - 15692:15692 # prometheus metrics
+      
+      - 5672:5672
+      - 15672:15672 # management
+    volumes:
+      - "./etc/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
+      - "./etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf"
+      - "./var/lib/rabbitmq:/var/lib/rabbitmq"
+      - "./etc/pki/tls/private:/etc/pki/tls/private"
+      - "./etc/pki/tls/certs:/etc/pki/tls/certs"
+
+  app_loopback:
+    image: alpine:3.18
+    entrypoint: /app/run.sh
+    networks:
+      - rabbitmq310-dev
+    environment:
+      PYTHONPATH: /app/py_rmq_exchange-1.3.1-py3.10.egg
+    container_name: 'app_loopback'
+    volumes:
+      - "./app:/app"
+
+
+networks:
+  rabbitmq310-dev:
+    external: false
+    driver: bridge
+
