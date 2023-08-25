@@ -8,10 +8,11 @@ docker-compose up -d
 
 ## General information
 
-Default credentials:
+### Credentials
 
-Admin: Visitor : visitor
-Guest: guest : guest
+**Admin**: Visitor : visitor
+
+**Guest**: guest : guest
 
 ### RabbitMQ
 
