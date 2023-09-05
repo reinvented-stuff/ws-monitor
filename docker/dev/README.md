@@ -10,9 +10,15 @@ docker-compose up -d
 
 ### Credentials
 
-**Admin**: Visitor : visitor
+**Admin**: 
 
-**Guest**: guest : guest
+* login: Visitor
+* password: visitor
+
+**Guest**: 
+
+* login: guest
+* password: guest
 
 ### RabbitMQ
 
