@@ -17,7 +17,7 @@ docker-compose up -d
 ### RabbitMQ
 
 * AMQP — localhost:5672
-* Management — https://localhost:15672
+* Management — http://localhost:15672
 
 ### MQTT
 
