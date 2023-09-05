@@ -38,7 +38,7 @@ docker-compose up -d
 
 ### Metrics
 
-http://localhost:15692
+* Prometheus: http://localhost:15692/metrics
 
 
 ## STOMP via telnet
