@@ -108,7 +108,7 @@ def loopback():
 
     while True:
         now = time.time()
-        body = {'@type': f"dev_event_{str(now)[-1]}" 'timestamp': now,}
+        body = {'@type': f"dev_event_{str(now)[-1]}", 'timestamp': now,}
         payload = {
             'body': json.dumps(body),
             'routing_key': "dev_rk_static",
